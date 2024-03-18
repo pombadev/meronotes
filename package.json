@@ -1,0 +1,167 @@
+{
+	"name": "meronotes",
+	"displayName": "MeroNotes",
+	"description": "HelloWorld example for VS Code",
+	"version": "1.0.0",
+	"publisher": "pombadev",
+	"icon": "./logo.png",
+	"license": "Apache-2.0",
+	"repository": "https://github.com/pombadev/meronotes",
+	"engines": {
+		"vscode": "^1.87.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"todo",
+		"note",
+		"notes",
+		"meronotes",
+		"productivity"
+	],
+	"activationEvents": [],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "meronotes.create",
+				"title": "MeroNotes: Add",
+				"icon": "$(add)"
+			},
+			{
+				"command": "meronotes.createChild",
+				"title": "MeroNotes: Add child",
+				"icon": "$(add)"
+			},
+			{
+				"command": "meronotes.edit",
+				"title": "MeroNotes: Edit",
+				"icon": "$(edit)"
+			},
+			{
+				"command": "meronotes.delete",
+				"title": "MeroNotes: Delete",
+				"icon": "$(trash)"
+			},
+			{
+				"command": "meronotes.deleteAll",
+				"title": "MeroNotes: Delete all",
+				"icon": "$(clear-all)"
+			},
+			{
+				"command": "meronotes.doneAll",
+				"title": "MeroNotes: Mark all as done",
+				"icon": "$(check-all)"
+			},
+			{
+				"command": "meronotes.refresh",
+				"title": "MeroNotes: Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "meronotes.done",
+				"title": "MeroNotes: Done",
+				"icon": "$(check)"
+			},
+			{
+				"command": "meronotes.redo",
+				"title": "MeroNotes: Redo",
+				"icon": "$(redo)"
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "meronotes",
+					"title": "MeroNotes",
+					"icon": "$(notebook)"
+				}
+			]
+		},
+		"views": {
+			"meronotes": [
+				{
+					"id": "meronotes/todos",
+					"name": "todos"
+				},
+				{
+					"id": "meronotes/done",
+					"name": "done"
+				},
+				{
+					"id": "meronotes/notes",
+					"name": "notes"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "meronotes/todos",
+				"contents": "[Create a note](command:meronotes.create)"
+			},
+			{
+				"view": "meronotes/done",
+				"contents": "No items are marked as done"
+			}
+		],
+		"menus": {
+			"view/title": [
+				{
+					"command": "meronotes.create",
+					"when": "view == meronotes/todos",
+					"group": "navigation@1"
+				},
+				{
+					"command": "meronotes.doneAll",
+					"when": "view == meronotes/todos",
+					"group": "navigation@2"
+				},
+				{
+					"command": "meronotes.deleteAll",
+					"when": "view == meronotes/todos",
+					"group": "navigation@3"
+				},
+				{
+					"command": "meronotes.deleteAll",
+					"when": "view == meronotes/done",
+					"group": "navigation@3"
+				},
+				{
+					"command": "meronotes.refresh",
+					"group": "navigation@4"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "meronotes.createChild",
+					"when": "view == meronotes/todos",
+					"group": "inline@1"
+				},
+				{
+					"command": "meronotes.edit",
+					"group": "inline@2"
+				},
+				{
+					"command": "meronotes.delete",
+					"group": "inline@3"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "eslint \"src/**/*.ts\"",
+		"watch": "tsc -watch -p ./"
+	},
+	"devDependencies": {
+		"@types/node": "^16.18.34",
+		"@types/vscode": "^1.87.0",
+		"@typescript-eslint/eslint-plugin": "^6.7.0",
+		"@typescript-eslint/parser": "^6.7.0",
+		"eslint": "^8.26.0",
+		"prettier": "3.2.5",
+		"typescript": "^5.3.2"
+	}
+}
