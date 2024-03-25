@@ -1,31 +1,34 @@
-import { Memento, ExtensionContext, TreeDataProvider, TreeItem, window, TreeItemCollapsibleState } from "vscode";
+import {
+	Memento,
+	ExtensionContext,
+	window,
+	TreeItemCollapsibleState,
+	EventEmitter,
+} from "vscode";
 import { randomUUID } from "crypto";
 
-import type { Notes, Note } from "./types";
-import type { MeroNotesDoneProvider, TodoNoteItem } from "./meronotes";
+import type { Notes, Note, NoteItem } from "./types";
+// import { EventEmitter } from "stream";
 
-type Provider = TreeDataProvider<any> & { refresh(): void }
+let storage: Storage;
 
-let storage: Storage<any>;
-
-export default function load(ctx: ExtensionContext, provider: Provider): Storage<Provider> {
+export default function load(ctx: ExtensionContext): Storage {
 	if (!storage) {
-		storage = new Storage(ctx, provider);
+		storage = new Storage(ctx);
 	}
 
 	return storage;
 }
 
-export class Storage<P extends Provider> {
+export class Storage extends EventEmitter<void> {
 	#backend: Memento & { setKeysForSync(keys: readonly string[]): void };
-
-	#provider: P;
 
 	#key = "meronotes/storage";
 
-	constructor(ctx: ExtensionContext, provider: P) {
+	constructor(ctx: ExtensionContext) {
+		super();
+
 		this.#backend = ctx.globalState;
-		this.#provider = provider;
 
 		this.#backend.setKeysForSync([this.#key]);
 
@@ -47,15 +50,11 @@ export class Storage<P extends Provider> {
 	#update(store = this.store): void {
 		this.#backend.update(this.#key, store);
 
-		// this.#provider.refresh();
+		this.fire();
 	}
 
 	indexOf(id: string): number {
 		return this.store.findIndex((node) => node.id === id);
-	}
-
-	refresh() {
-		this.#update();
 	}
 
 	move(to: number, from: number): void {
@@ -96,11 +95,11 @@ export class Storage<P extends Provider> {
 		this.#update();
 	}
 
-	addChild(parent: TodoNoteItem, contents: string) {
+	addChild(parent: NoteItem, contents: string) {
 		const current = this.get(parent.id);
 
 		if (current) {
-			parent.collapsibleState = TreeItemCollapsibleState.Expanded;
+			// parent.collapsibleState = TreeItemCollapsibleState.Expanded;
 
 			current.children.push({
 				contents,
@@ -116,7 +115,7 @@ export class Storage<P extends Provider> {
 		}
 	}
 
-	edit(current: TodoNoteItem, value: string): void {
+	edit(current: NoteItem, value: string): void {
 		// const index = this.indexOf(current.id);
 
 		// const note = this.store[index];
@@ -136,7 +135,7 @@ export class Storage<P extends Provider> {
 		}
 	}
 
-	delete(note: TodoNoteItem): void {
+	delete(note: NoteItem): void {
 		let store = this.store;
 		const parent = this.get(note.parent!);
 

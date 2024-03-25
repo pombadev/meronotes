@@ -25,6 +25,20 @@
 	"contributes": {
 		"commands": [
 			{
+				"command": "meronotes.selectNotesDir",
+				"title": "MeroNotes: Select Notes folder"
+			},
+			{
+				"command": "meronotes.notesCreate",
+				"title": "MeroNotes: Create Note",
+				"icon": "$(add)"
+			},
+			{
+				"command": "meronotes.notesDelete",
+				"title": "MeroNotes: Delete Note",
+				"icon": "$(trash)"
+			},
+			{
 				"command": "meronotes.create",
 				"title": "MeroNotes: Add",
 				"icon": "$(add)"
@@ -102,7 +116,18 @@
 			},
 			{
 				"view": "meronotes/done",
-				"contents": "No items are marked as done"
+				"contents": "No items are marked as done",
+				"when": "meroNotes.noDoneItems"
+			},
+			{
+				"view": "meronotes/notes",
+				"when": "meroNotes.notesDirectoryNotSet",
+				"contents": "[Select folder](command:meronotes.selectNotesDir)\nSelect folder to save your notes."
+			},
+			{
+				"view": "meronotes/notes",
+				"when": "meroNotes.notesEmpty",
+				"contents": "[Create a note](command:meronotes.notesCreate)\nPlease note that only files with .md extension are shown."
 			}
 		],
 		"menus": {
@@ -129,6 +154,12 @@
 				},
 				{
 					"command": "meronotes.refresh",
+					"when": "view !== meronotes/notes",
+					"group": "navigation@4"
+				},
+				{
+					"command": "meronotes.notesCreate",
+					"when": "view === meronotes/notes && !meroNotes.notesEmpty",
 					"group": "navigation@4"
 				}
 			],
@@ -140,13 +171,29 @@
 				},
 				{
 					"command": "meronotes.edit",
+					"when": "view == meronotes/todos || view == meronotes/done",
 					"group": "inline@2"
 				},
 				{
 					"command": "meronotes.delete",
+					"when": "view !== meronotes/notes",
+					"group": "inline@3"
+				},
+				{
+					"command": "meronotes.notesDelete",
+					"when": "view == meronotes/notes",
 					"group": "inline@3"
 				}
 			]
+		},
+		"configuration": {
+			"title": "MeroNotes",
+			"properties": {
+				"meroNotes.notesDirectory": {
+					"type": "string",
+					"description": "Set directory of notes"
+				}
+			}
 		}
 	},
 	"scripts": {

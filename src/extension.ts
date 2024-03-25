@@ -1,40 +1,32 @@
-import { ExtensionContext, commands, window, ProgressLocation, InputBoxValidationSeverity } from "vscode";
-
-import MeroNotesProvider, { type TodoNoteItem, MeroNotesDoneProvider } from "./meronotes";
-import { randomInt, randomUUID } from "crypto";
+import {
+	ExtensionContext,
+	commands,
+	window,
+	ProgressLocation,
+	InputBoxValidationSeverity,
+} from "vscode";
 
 import loadStorage from "./storage";
+import { type NoteItem } from "./types";
+import DoneProvider from "./providers/done";
+import TodoProvider from "./providers/todos";
+import NotesProvider from "./providers/notes";
 
 export function activate(context: ExtensionContext) {
+	// const cfg = workspace
+	// 	.getConfiguration("meroNotes")
+	// 	.get<string>("notesDirectory");
 
-	const todoProvider = new MeroNotesProvider(context);
+	const storage = loadStorage(context);
 
-	const storage = todoProvider.storage;
+	NotesProvider(context);
 
-	// const doneProvider = new MeroNotesDoneProvider(context);
+	TodoProvider(context, storage);
 
-	const s = loadStorage(context, todoProvider);
+	DoneProvider(context, storage);
 
 	context.subscriptions.push(
-		commands.registerCommand("meronotes.create", async () => {
-			const contents = await window.showInputBox();
-
-			if (contents) {
-				storage.add(contents);
-			}
-		}),
-
-		commands.registerCommand("meronotes.createChild", async (parent: TodoNoteItem) => {
-			const contents = await window.showInputBox({
-				title: parent.label
-			});
-
-			if (contents) {
-				storage.addChild(parent, contents);
-			}
-		}),
-
-		commands.registerCommand("meronotes.edit", async (note: TodoNoteItem) => {
+		commands.registerCommand("meronotes.edit", (note: NoteItem) => {
 			window
 				.showInputBox({
 					value: note.label,
@@ -56,33 +48,16 @@ export function activate(context: ExtensionContext) {
 				});
 		}),
 
-		commands.registerCommand("meronotes.delete", async (note: TodoNoteItem) => {
-			storage.delete(note);
-			// doneProvider.refresh();
-		}),
-
-		commands.registerCommand("meronotes.deleteAll", async () => {
-			if (storage.isEmpty) {
-				return window.showInformationMessage("No notes saved.");
-			}
-
-			const answer = await window.showErrorMessage("Are you sure?", { detail: "You won't be able to restore them back.", modal: true }, "Yes");
-
-			if (answer === "Yes") {
-				storage.deleteAll();
-			}
-		}),
-
-		commands.registerCommand("meronotes.done", async (note: TodoNoteItem) => {
+		commands.registerCommand("meronotes.done", async (note: NoteItem) => {
 			// storage.markAllDone();
 			// doneProvider.storage.done(note.id);
-			todoProvider.refresh();
+			// storage.refresh();
 		}),
 
-		commands.registerCommand("meronotes.redo", async (note: TodoNoteItem) => {
+		commands.registerCommand("meronotes.redo", async (note: NoteItem) => {
 			// storage.markAllDone();
 			// doneProvider.storage.redo(note.id);
-			todoProvider.refresh();
+			// storage.refresh();
 		}),
 
 		commands.registerCommand("meronotes.doneAll", async () => {
@@ -90,7 +65,11 @@ export function activate(context: ExtensionContext) {
 				return window.showInformationMessage("No notes saved.");
 			}
 
-			const answer = await window.showWarningMessage("Mark all as done?", { modal: true }, "Yes");
+			const answer = await window.showWarningMessage(
+				"Mark all as done?",
+				{ modal: true },
+				"Yes",
+			);
 
 			if (answer === "Yes") {
 				storage.markAllDone();
@@ -108,7 +87,7 @@ export function activate(context: ExtensionContext) {
 				() => {
 					return new Promise((resolve) => {
 						setTimeout(() => {
-							todoProvider.refresh();
+							// storage.refresh();
 							resolve(undefined);
 						}, 500);
 					});
