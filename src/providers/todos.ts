@@ -51,8 +51,12 @@ class MeroNotesProvider
 
 		this.tree = todos;
 
+		this.storage = storage;
+
 		storage.event(() => {
 			this.refresh();
+
+			this.setContext();
 		});
 
 		todos.onDidChangeCheckboxState(({ items: [[note]] }) => {
@@ -60,6 +64,16 @@ class MeroNotesProvider
 		});
 
 		context.subscriptions.push(todos);
+
+		this.setContext();
+	}
+
+	setContext() {
+		commands.executeCommand(
+			"setContext",
+			"meroNotes.noTodoItems",
+			this.storage.store.filter((store) => store.done === false).length === 0,
+		);
 	}
 
 	async handleDrag(
@@ -79,31 +93,31 @@ class MeroNotesProvider
 			return;
 		}
 
-		// if (transferItem) {
-		// 	return console.info(transferItem.value[0]);
-		// }
 		const [src] = transferItem.value;
 
-		const from = this.storage.indexOf(src.id);
-		const to = this.storage.indexOf(target.id);
-
-		// console.info({
-		// 	src: { src, parent: this.storage.get(src.parent) },
-		// 	target: { target, parent: this.storage.get(target.parent!) }
-		// });
 		const srcParent = this.storage.get(src.parent);
+
 		const targetParent = this.storage.get(target.parent!);
 
-		if (!srcParent || !targetParent) {
-			// this.storage.store
+		console.info({ srcParent, targetParent });
+
+		// case one: src & target are in the root
+		if (!srcParent && !targetParent) {
+			const from = this.storage.indexOf(src.id);
+			const to = this.storage.indexOf(target.id);
+			this.storage.move(to, from);
 			return;
 		}
 
-		console.info(`{ srcParent, targetParent }`, { srcParent, targetParent });
-		console.info("srcParent?.id", srcParent?.id);
-		console.info("target?.id", target.id);
-		console.info("<=>", srcParent?.id === target.id);
+		// if (!srcParent && targetParent) {
+		// 	return;
+		// }
 
+		// if (!targetParent && srcParent) {
+		// 	return;
+		// }
+
+		// case two: src & parent are under same parent
 		if (srcParent.id === targetParent.id) {
 			const tmp = srcParent!.children;
 
@@ -118,12 +132,9 @@ class MeroNotesProvider
 				f[0],
 			);
 
-			// this.storage.refresh();
-		} else {
-			//
+			this.storage.update(this.storage.store);
+			return;
 		}
-
-		// this.storage.move(to, from);
 	}
 
 	refresh(): void {
@@ -135,15 +146,12 @@ class MeroNotesProvider
 	}
 
 	getParent(element: TodoNoteItem): ProviderResult<TodoNoteItem> {
-		console.info("element", element);
-
 		let parent = null;
 
-		const r = this.storage.get(element.parent!);
+		const note = this.storage.get(element.parent!);
 
-		if (r) {
-			parent = new TodoNoteItem(r);
-			console.info(r);
+		if (note) {
+			parent = new TodoNoteItem(note);
 		}
 
 		return Promise.resolve(parent);
@@ -177,7 +185,6 @@ export default function (context: ExtensionContext, storage: Storage) {
 
 			if (contents) {
 				storage.add(contents);
-				// provider.refresh();
 			}
 		}),
 
@@ -197,7 +204,6 @@ export default function (context: ExtensionContext, storage: Storage) {
 
 		commands.registerCommand("meronotes.delete", async (note: TodoNoteItem) => {
 			storage.delete(note);
-			// provider.refresh();
 		}),
 
 		commands.registerCommand("meronotes.deleteAll", async () => {
@@ -213,7 +219,6 @@ export default function (context: ExtensionContext, storage: Storage) {
 
 			if (answer === "Yes") {
 				storage.deleteAll();
-				// provider.refresh();
 			}
 		}),
 	);

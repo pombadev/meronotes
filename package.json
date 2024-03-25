@@ -72,16 +72,6 @@
 				"command": "meronotes.refresh",
 				"title": "MeroNotes: Refresh",
 				"icon": "$(refresh)"
-			},
-			{
-				"command": "meronotes.done",
-				"title": "MeroNotes: Done",
-				"icon": "$(check)"
-			},
-			{
-				"command": "meronotes.redo",
-				"title": "MeroNotes: Redo",
-				"icon": "$(redo)"
 			}
 		],
 		"viewsContainers": {
@@ -112,11 +102,11 @@
 		"viewsWelcome": [
 			{
 				"view": "meronotes/todos",
-				"contents": "[Create a note](command:meronotes.create)"
+				"contents": "Start by creating a todo item.\n[Create a note](command:meronotes.create)"
 			},
 			{
 				"view": "meronotes/done",
-				"contents": "No items are marked as done",
+				"contents": "No item(s) are marked as done.",
 				"when": "meroNotes.noDoneItems"
 			},
 			{
@@ -127,29 +117,29 @@
 			{
 				"view": "meronotes/notes",
 				"when": "meroNotes.notesEmpty",
-				"contents": "[Create a note](command:meronotes.notesCreate)\nPlease note that only files with .md extension are shown."
+				"contents": "[Create a note](command:meronotes.notesCreate)\nPlease note that only markdown files are shown here."
 			}
 		],
 		"menus": {
 			"view/title": [
 				{
 					"command": "meronotes.create",
-					"when": "view == meronotes/todos",
+					"when": "view == meronotes/todos && !meroNotes.noTodoItems",
 					"group": "navigation@1"
 				},
 				{
 					"command": "meronotes.doneAll",
-					"when": "view == meronotes/todos",
+					"when": "view == meronotes/todos && !meroNotes.noTodoItems",
 					"group": "navigation@2"
 				},
 				{
 					"command": "meronotes.deleteAll",
-					"when": "view == meronotes/todos",
+					"when": "view == meronotes/todos && !meroNotes.noTodoItems",
 					"group": "navigation@3"
 				},
 				{
 					"command": "meronotes.deleteAll",
-					"when": "view == meronotes/done",
+					"when": "view === meronotes/done && !meroNotes.noDoneItems",
 					"group": "navigation@3"
 				},
 				{

@@ -43,8 +43,6 @@ export default function (context: ExtensionContext) {
 				.getConfiguration("meroNotes")
 				.get<string>("notesDirectory");
 
-			console.info("rootFromCfg", rootFromCfg);
-
 			if (rootFromCfg) {
 				this.#root = rootFromCfg;
 
@@ -112,10 +110,6 @@ export default function (context: ExtensionContext) {
 	}
 
 	const provider = new MeroNotesNotesProvider();
-
-	// workspace
-	// 	.getConfiguration("meroNotes")
-	// 	.update("notesDirectory", undefined, true);
 
 	context.subscriptions.push(
 		commands.registerCommand("meronotes.selectNotesDir", async () => {

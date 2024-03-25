@@ -47,7 +47,7 @@ export class Storage extends EventEmitter<void> {
 		return this.store.length === 0;
 	}
 
-	#update(store = this.store): void {
+	update(store = this.store): void {
 		this.#backend.update(this.#key, store);
 
 		this.fire();
@@ -60,7 +60,7 @@ export class Storage extends EventEmitter<void> {
 	move(to: number, from: number): void {
 		const tmp = this.store;
 		tmp.splice(to, 0, tmp.splice(from, 1)[0]);
-		this.#update(tmp);
+		this.update(tmp);
 	}
 
 	get(id: string): Note | undefined {
@@ -92,7 +92,7 @@ export class Storage extends EventEmitter<void> {
 			id: randomUUID(),
 		});
 
-		this.#update();
+		this.update();
 	}
 
 	addChild(parent: NoteItem, contents: string) {
@@ -109,7 +109,7 @@ export class Storage extends EventEmitter<void> {
 				parent: parent.id,
 			});
 
-			this.#update();
+			this.update();
 		} else {
 			console.error(parent, "has no stuffs");
 		}
@@ -129,7 +129,7 @@ export class Storage extends EventEmitter<void> {
 		if (note) {
 			note.contents = value;
 
-			this.#update();
+			this.update();
 		} else {
 			window.showWarningMessage(`${current.label} was not found`);
 		}
@@ -145,11 +145,11 @@ export class Storage extends EventEmitter<void> {
 			store = this.store.filter((item) => item.id !== note.id);
 		}
 
-		this.#update(store);
+		this.update(store);
 	}
 
 	deleteAll(): void {
-		this.#update([]);
+		this.update([]);
 	}
 
 	done(id: string): void {
@@ -160,7 +160,7 @@ export class Storage extends EventEmitter<void> {
 			}
 		}
 
-		this.#update();
+		this.update();
 	}
 
 	markAllDone(): void {
@@ -168,7 +168,7 @@ export class Storage extends EventEmitter<void> {
 			note.done = true;
 		});
 
-		this.#update();
+		this.update();
 	}
 
 	redo(id: string): void {
@@ -179,6 +179,6 @@ export class Storage extends EventEmitter<void> {
 			}
 		}
 
-		this.#update();
+		this.update();
 	}
 }

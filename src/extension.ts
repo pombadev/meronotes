@@ -13,10 +13,6 @@ import TodoProvider from "./providers/todos";
 import NotesProvider from "./providers/notes";
 
 export function activate(context: ExtensionContext) {
-	// const cfg = workspace
-	// 	.getConfiguration("meroNotes")
-	// 	.get<string>("notesDirectory");
-
 	const storage = loadStorage(context);
 
 	NotesProvider(context);
@@ -48,18 +44,6 @@ export function activate(context: ExtensionContext) {
 				});
 		}),
 
-		commands.registerCommand("meronotes.done", async (note: NoteItem) => {
-			// storage.markAllDone();
-			// doneProvider.storage.done(note.id);
-			// storage.refresh();
-		}),
-
-		commands.registerCommand("meronotes.redo", async (note: NoteItem) => {
-			// storage.markAllDone();
-			// doneProvider.storage.redo(note.id);
-			// storage.refresh();
-		}),
-
 		commands.registerCommand("meronotes.doneAll", async () => {
 			if (storage.isEmpty) {
 				return window.showInformationMessage("No notes saved.");
@@ -73,7 +57,6 @@ export function activate(context: ExtensionContext) {
 
 			if (answer === "Yes") {
 				storage.markAllDone();
-				// doneProvider.refresh();
 			}
 		}),
 
@@ -87,7 +70,7 @@ export function activate(context: ExtensionContext) {
 				() => {
 					return new Promise((resolve) => {
 						setTimeout(() => {
-							// storage.refresh();
+							storage.fire();
 							resolve(undefined);
 						}, 500);
 					});

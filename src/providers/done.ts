@@ -27,6 +27,8 @@ export class MeroNotesDoneProvider implements TreeDataProvider<TodoNoteItem> {
 	) {
 		storage.event(() => {
 			this.refresh();
+
+			this.setContext();
 		});
 
 		const done = window.createTreeView("meronotes/done", {
@@ -40,6 +42,16 @@ export class MeroNotesDoneProvider implements TreeDataProvider<TodoNoteItem> {
 		});
 
 		ctx.subscriptions.push(done);
+
+		this.setContext();
+	}
+
+	setContext() {
+		commands.executeCommand(
+			"setContext",
+			"meroNotes.noDoneItems",
+			this.storage.store.filter((store) => store.done).length === 0,
+		);
 	}
 
 	refresh(): void {
