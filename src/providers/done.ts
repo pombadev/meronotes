@@ -3,16 +3,12 @@ import {
 	EventEmitter,
 	ExtensionContext,
 	TreeDataProvider,
-	TreeItem,
 	window,
-	CancellationToken,
-	ProviderResult,
 	commands,
 } from "vscode";
 
-import { NoteItem, type Note } from "../types";
-import { TodoNoteItem } from "./todos";
 import { type Storage } from "../storage";
+import { NoteItem, Notes, type Note } from "../types";
 
 class DoneNoteItem extends NoteItem {
 	constructor(note: Note) {
@@ -20,11 +16,12 @@ class DoneNoteItem extends NoteItem {
 	}
 }
 
-export class MeroNotesDoneProvider implements TreeDataProvider<TodoNoteItem> {
-	constructor(
-		ctx: ExtensionContext,
-		public storage: Storage,
-	) {
+class MeroNotesDoneProvider implements TreeDataProvider<DoneNoteItem> {
+	storage: Storage;
+
+	constructor(ctx: ExtensionContext, storage: Storage) {
+		this.storage = storage;
+
 		storage.event(() => {
 			this.refresh();
 
@@ -58,39 +55,61 @@ export class MeroNotesDoneProvider implements TreeDataProvider<TodoNoteItem> {
 		this._onDidChangeTreeData.fire();
 	}
 
-	_onDidChangeTreeData: EventEmitter<TodoNoteItem | undefined | void> =
-		new EventEmitter<TodoNoteItem | undefined | void>();
+	_onDidChangeTreeData: EventEmitter<DoneNoteItem | undefined | void> =
+		new EventEmitter<DoneNoteItem | undefined | void>();
 
-	onDidChangeTreeData: Event<TodoNoteItem | undefined | void> =
+	onDidChangeTreeData: Event<DoneNoteItem | undefined | void> =
 		this._onDidChangeTreeData.event;
 
-	getTreeItem(element: TodoNoteItem): TodoNoteItem {
+	getTreeItem(element: DoneNoteItem): DoneNoteItem {
 		return element;
 	}
 
-	getChildren(element?: TodoNoteItem): Thenable<TodoNoteItem[]> {
-		// console.info(`element`, element);
-
+	getChildren(element?: DoneNoteItem): Thenable<DoneNoteItem[]> {
 		if (element) {
-			return Promise.resolve([]);
+			const item = this.storage.get(element.id);
+
+			if (item) {
+				return Promise.resolve(
+					item.children.filter((i) => i.done).map((i) => new DoneNoteItem(i)),
+				);
+			} else {
+				return Promise.resolve([]);
+			}
 		} else {
-			const notesFromStorage = this.storage.store;
+			// const items: { [id: string]: Note } = {};
+
+			// const inner = (s: Notes) => {
+			// 	s.forEach((note) => {
+			// 		if (note.done) {
+			// 			let parent = this.storage.get(note.parent as string);
+
+			// 			if (parent) {
+			// 				parent = {
+			// 					...parent,
+			// 					children: [],
+			// 				};
+
+			// 				items[parent.id] ??= parent;
+			// 				items[parent.id].children.push(note);
+			// 			} else {
+			// 				items[note.id] = note;
+			// 			}
+			// 		}
+
+			// 		inner(note.children);
+			// 	});
+			// };
+
+			// inner(this.storage.store);
+
 			return Promise.resolve(
-				notesFromStorage
-					.filter((note) => note.done)
+				this.storage.store
+					.filter((a) => a.done)
 					.map((note) => new DoneNoteItem(note)),
+				// Object.values(items).map((note) => new DoneNoteItem(note)),
 			);
 		}
-	}
-
-	resolveTreeItem(
-		item: TreeItem,
-		element: TodoNoteItem,
-		token: CancellationToken,
-	): ProviderResult<TreeItem> {
-		console.info({ item, element });
-
-		return;
 	}
 }
 

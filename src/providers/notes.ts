@@ -78,7 +78,7 @@ export default function (context: ExtensionContext) {
 				commands.executeCommand(
 					"setContext",
 					"meroNotes.notesEmpty",
-					dir.filter(([file, d]) => /\.md/i.test(file)).map(([file]) => file)
+					dir.filter(([file]) => /\.md/i.test(file)).map(([file]) => file)
 						.length === 0,
 				);
 			});

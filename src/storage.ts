@@ -1,14 +1,7 @@
-import {
-	Memento,
-	ExtensionContext,
-	window,
-	TreeItemCollapsibleState,
-	EventEmitter,
-} from "vscode";
+import { Memento, ExtensionContext, window, EventEmitter } from "vscode";
 import { randomUUID } from "crypto";
 
 import type { Notes, Note, NoteItem } from "./types";
-// import { EventEmitter } from "stream";
 
 let storage: Storage;
 
@@ -99,8 +92,6 @@ export class Storage extends EventEmitter<void> {
 		const current = this.get(parent.id);
 
 		if (current) {
-			// parent.collapsibleState = TreeItemCollapsibleState.Expanded;
-
 			current.children.push({
 				contents,
 				done: false,
@@ -116,14 +107,6 @@ export class Storage extends EventEmitter<void> {
 	}
 
 	edit(current: NoteItem, value: string): void {
-		// const index = this.indexOf(current.id);
-
-		// const note = this.store[index];
-
-		// note.contents = value;
-
-		// this.#update();
-
 		const note = this.get(current.id);
 
 		if (note) {
@@ -153,31 +136,80 @@ export class Storage extends EventEmitter<void> {
 	}
 
 	done(id: string): void {
-		for (const note of this.store) {
-			if (note.id === id) {
-				note.done = true;
-				break;
+		const inner = (selfId: string) => {
+			const self = this.get(selfId);
+
+			if (self) {
+				self.done = true;
+
+				self.children.forEach((item) => {
+					inner(item.id);
+				});
+
+				const parent = this.get(self.parent as string);
+
+				if (parent?.children.every(({ done }) => done === true)) {
+					parent.done = true;
+				}
 			}
-		}
+		};
+
+		inner(id);
 
 		this.update();
 	}
 
 	markAllDone(): void {
-		this.store.forEach((note) => {
-			note.done = true;
-		});
+		function inner(s: Notes) {
+			for (const note of s) {
+				note.done = true;
+
+				inner(note.children);
+			}
+		}
+
+		inner(this.store);
 
 		this.update();
 	}
 
 	redo(id: string): void {
-		for (const note of this.store) {
-			if (note.id === id) {
-				note.done = false;
-				break;
+		const inner = (selfId: string) => {
+			const self = this.get(selfId);
+
+			if (self) {
+				self.done = false;
+
+				self.children.forEach((item) => {
+					inner(item.id);
+				});
+
+				const parent = this.get(self.parent as string);
+
+				if (parent) {
+					console.info("REDO", { self, parent });
+
+					const foo = parent.children.every((c) => c.done === false);
+
+					console.info("???", foo);
+
+					if (foo) {
+						parent.done = false;
+					}
+
+					// inner(parent.id);
+				}
+
+				// if (parent?.children.every(({ done }) => done === false)) {
+				// 	parent.done = false;
+				// 	parent.children.forEach((item) => {
+				// 		inner(item.id);
+				// 	});
+				// }
 			}
-		}
+		};
+
+		inner(id);
 
 		this.update();
 	}

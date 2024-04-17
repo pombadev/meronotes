@@ -6,7 +6,10 @@
 		"outDir": "out",
 		"sourceMap": true,
 		"strict": true,
-		"rootDir": "src"
+		"rootDir": "src",
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"experimentalDecorators": true
 	},
 	"exclude": ["node_modules", ".vscode-test"]
 }

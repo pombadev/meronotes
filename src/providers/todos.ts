@@ -10,10 +10,12 @@ import {
 	commands,
 	TreeView,
 	ProviderResult,
+	CancellationToken,
+	TreeItem,
 } from "vscode";
 
 import { type Storage } from "../storage";
-import { type Note, NoteItem } from "../types";
+import { type Note, NoteItem, Notes } from "../types";
 
 export class TodoNoteItem extends NoteItem {
 	constructor(note: Note) {
@@ -157,22 +159,73 @@ class MeroNotesProvider
 		return Promise.resolve(parent);
 	}
 
-	getChildren(element: TodoNoteItem): Thenable<TodoNoteItem[]> {
-		const notesFromStorage = this.storage;
+	getChildren(element?: TodoNoteItem): Thenable<TodoNoteItem[]> {
+		// console.info("todo/getChildren", element);
 
-		if (element) {
-			const it = notesFromStorage.get(element.id);
+		const it = this.storage.get(element?.id as string); // intentional casting
 
-			if (!it) return Promise.resolve([]);
-
-			return Promise.resolve(it.children.map((i) => new TodoNoteItem(i)));
-		} else {
+		if (it) {
 			return Promise.resolve(
-				notesFromStorage.store
-					.filter((note) => !note.done)
-					.map((note) => new TodoNoteItem(note)),
+				it.children.filter((i) => !i.done).map((i) => new TodoNoteItem(i)),
 			);
 		}
+
+		const items: { [id: string]: Note } = {};
+
+		const inner = (s: Notes) => {
+			s.forEach((note) => {
+				let next = note.done === false;
+
+				if (note.done && note.children.length) {
+					next = note.children.some(({ done }) => done);
+					console.info("%b", next, note);
+				}
+
+				if (next) {
+					const parent = this.storage.get(note.parent as string);
+
+					// console.info("note", note);
+					// console.info("parent", parent);
+
+					if (parent) {
+						const { children, ...item } = parent;
+
+						items[parent.id] = {
+							...item,
+							children: [note],
+						};
+					} else {
+						// note.children = [];
+						items[note.id] = {
+							...note,
+							children: [],
+						};
+					}
+				}
+
+				inner(note.children);
+			});
+		};
+
+		inner(this.storage.store);
+
+		// this.storage.deleteAll();
+
+		console.info("items", items);
+
+		console.info(this.storage.store);
+
+		// return Promise.resolve(
+		// 	Object.values(items)
+		// 		// .filter((note) => !note.done)
+		// 		.map((note) => new TodoNoteItem(note)),
+		// );
+
+		return Promise.resolve(
+			this.storage.store
+				.filter((note) => !note.done)
+				.map((note) => new TodoNoteItem(note)),
+		);
 	}
 }
 
